@@ -2,32 +2,56 @@
 
 namespace App\Repositories\Eloquent;
 
-use App\DTO\StoreUserDTO;
-use App\DTO\UpdateUserDTO;
+use App\DTO\ProductDTO;
+use App\Models\Product;
 use App\Models\User;
-use App\Repositories\Contracts\UserRepositoryInterface;
+use App\Repositories\Contracts\ProductRepositoryInterface;
+use Illuminate\Http\Request;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\DB;
 
-class ProductRepository implements UserRepositoryInterface
+class ProductRepository implements ProductRepositoryInterface
 {
+
+    public function all(Request $request): Paginator
+    {
+
+        $query = Product::query();
+
+        if(!empty($request->title)) {
+            $query->whereRaw("title", [$request->title]);
+        }
+        if(!empty($request->price)) {
+            $query->whereRaw("price", [$request->price]);
+        }
+        if(!empty($request->description)) {
+            $query->whereRaw("description", [$request->description]);
+        }
+        if(!empty($request->category)) {
+            $query->whereRaw("category", [$request->category]);
+        }
+        if(!empty($request->image)) {
+            $query->whereRaw("image", [$request->image]);
+        }
+        if(!empty($request->rate)) {
+            $query->whereRaw("rate", [$request->rate]);
+        }
+        return Product::paginate($request->perPage)->through(fn(Product $u) => ProductDTO::InstancefromArray($u->toArray()));
+    }
+
     public function show(int $id): object
     {
-        return User::find($id);
+        return Product::find($id);
     }
 
-    public function fromEmail(string $email): object
-    {
-        return User::whereRaw("email = '$email'")->first();
-    }
-
-    public function store(StoreUserDTO $dto): array
+    public function store(ProductDTO $dto): array
     {
         DB::beginTransaction();
         try {
-            User::create($dto->toArray());
+            Product::create($dto->toArray());
             DB::commit();
         } catch (\Exception $e) {
-            DB::rollBack(); $name= $dto->name;
+            DB::rollBack();
             return [
                 'status' => 500,
                 'message' => "Erro ao cadastrar: {$e->getMessage()}",
@@ -39,11 +63,11 @@ class ProductRepository implements UserRepositoryInterface
         ];
     }
 
-    public function update(int $id, UpdateUserDTO $dto): array
+    public function update(int $id, ProductDTO $dto): array
     {
         DB::beginTransaction();
         try {
-            $product = User::find($id);
+            $product = Product::find($id);
             $product->update($dto->toArray());
             DB::commit();
         } catch (\Exception $e) {
@@ -63,7 +87,7 @@ class ProductRepository implements UserRepositoryInterface
     {
         DB::beginTransaction();
         try {
-            User::destroy($id);
+            Product::destroy($id);
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();

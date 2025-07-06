@@ -18,4 +18,11 @@ class Product extends Model
         "rate",
         "count"
     ];
+
+    protected $hidden = [
+    ];
+
+    protected $casts = [
+    ];
+
 }

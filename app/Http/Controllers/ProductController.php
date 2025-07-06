@@ -2,19 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ProductRequest;
 use App\Http\Requests\StoreProductRequest;
-use App\Http\Requests\StoreUserRequest;
-use App\Http\Requests\UpdateUserRequest;
-use App\Repositories\Contracts\UserRepositoryInterface;
-use App\Services\UserService;
-use Illuminate\Http\JsonResponse;
+use App\Services\ProductService;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class ProductController extends Controller
 {
 
-    public function __construct(protected Pro $service) { }
+    public function __construct(protected ProductService $service) { }
+
+    public function index(Request $request): JsonResponse
+    {
+        $result = $this->service->list($request);
+        return response()->json($result);
+    }
 
 
     public function show(int $id): JsonResponse
