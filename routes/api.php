@@ -29,5 +29,6 @@ Route::get('/users/show/{id}', [ProductController::class, 'show'])->middleware('
 Route::post('/users/store', [ProductController::class, 'store'])->middleware('auth:sanctum');
 Route::put('/users/update/{id}', [ProductController::class, 'update'])->middleware('auth:sanctum');
 Route::delete('/users/destroy/{id}', [ProductController::class, 'destroy'])->middleware('auth:sanctum');
+Route::delete('/users/paginate', [ProductController::class, 'index']);
 
 
