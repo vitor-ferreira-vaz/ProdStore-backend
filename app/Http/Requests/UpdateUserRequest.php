@@ -3,8 +3,9 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Password;
 
-class ProductRequest extends FormRequest
+class UpdateUserRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,19 +23,18 @@ class ProductRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string',
-            'category' => 'required|integer',
-            'with_image' => 'required',
-            'id' => 'required|integer',
+            'name' => 'required|string|min:8',
+            'email' => 'required|email',
         ];
     }
 
     public function messages()
     {
         return [
-            'name.required' => 'Nome do produto não informado!',
-            'name.string' => 'O nome pode conter somente texto!',
-            'category.required' => 'Catergoria não informada!',
+            'name.required' => 'Nome não informado!',
+            'name.string' => 'Nome deve conter somente letras!',
+            'name.min' => 'Nome deve conter no mínimo 8 caracteres!',
+            'email.required' => 'E-mail não informado!',
         ];
     }
 }

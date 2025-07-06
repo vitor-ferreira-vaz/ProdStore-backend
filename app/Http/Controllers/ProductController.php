@@ -3,72 +3,43 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProductRequest;
-use App\Repositories\Contracts\ProductRepositoryInterface;
-use App\Services\ProductService;
+use App\Http\Requests\StoreProductRequest;
+use App\Http\Requests\StoreUserRequest;
+use App\Http\Requests\UpdateUserRequest;
+use App\Repositories\Contracts\UserRepositoryInterface;
+use App\Services\UserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
 
-    public function __construct(protected ProductService $service) { }
+    public function __construct(protected Pro $service) { }
 
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+
+    public function show(int $id): JsonResponse
     {
-        //
+        $obj = $this->service->show($id);
+        return response()->json(['data' => $obj, 'message' => $obj['message']], $obj['status']);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
 
+    public function store(StoreProductRequest $request): JsonResponse
+    {
+        $store = $this->service->store($request->all());
+        return response()->json(['message' => $store['message']], $store['status']);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(ProductRequest $request): JsonResponse
+    public function update(StoreProductRequest $request, string $id): JsonResponse
     {
-        $this->service->store($request->all());
-        return response()->json(['message' => 'Produto salvo com sucesso!'], 201);
+        $update = $this->service->update($id, $request->all());
+        return response()->json(['message' => $update['message']], $update['status']);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
 
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function destroy(string $id): JsonResponse
     {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(ProductRequest $request, string $id)
-    {
-        $this->service->update($id, $request->all());
-        return response()->json(['message' => 'Produto atualizado com sucesso!'], 200);
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        $this->service->destroy($id);
-        return response()->json(['message' => 'Produto deletado com sucesso!'], 200);
+        $destroy = $this->service->destroy($id);
+        return response()->json(['message' => $destroy['message']], $destroy['status']);
     }
 }

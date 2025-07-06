@@ -2,7 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Models\ImageProduct;
+//use App\Models\ImageProduct;
+use App\DTO\ProductDTO;
 use App\Models\Product;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -35,52 +36,16 @@ class ProductAction extends Command
         $offline = $this->input->getOption('offline');
 
         $this->info("Requisição iniciada...");
-        if (!$prod_id){
+
+        if (!isset($prod_id)){
             $this->error("Nenhum produto encontrado!");
         }
 
-        if (!$offline) {
-            $response = Http::get("https://fakestoreapi.com/products/$prod_id");
-            if ($response->clientError()) {
-                $this->error("Erro de requisição! status: 400!");
-            } else if ($response->serverError()) {
-                $this->error("Erro do servidor! status: 500!");
-            }
-            $record = [
-                "id" => $response->object()->id,
-                "title" => $response->object()->title,
-                "price" => $response->object()->price,
-                "description" => $response->object()->description,
-                "category" => $response->object()->category,
-                "image" => $response->object()->image,
-                "rate" => $response->object()->rating->rate,
-                "count" => $response->object()->rating->count
-            ];
-        } else {
-            $path = Storage::disk('products')->path('all_products.json');
-            $path = str_replace("/", "\\", $path);
-            $path = str_replace("\\", "/", $path);
-            $json = file_get_contents($path);
-            $clean = str_replace(["\r", "\n"], '', $json);
-            $response = json_decode($clean, true);
+        $record = !$offline ? $this->getApiData($prod_id) : $this->getDiskData($prod_id);
 
-            if (!$response[$prod_id]) {
-                $this->error("Produto não econtrado!");
-            }
-            $response = (object)$response[$prod_id];
-            $record = [
-                "id" => $response->id,
-                "title" => $response->title,
-                "price" => $response->price,
-                "description" => $response->description,
-                "category" => $response->category,
-                "image" => $response->image,
-                "rate" => $response->rating['rate'],
-                "count" => $response->rating['count']
-            ];
-        }
+        $dto = ProductDTO::InstancefromArray($record);
 
-        $validator = Validator::make($record, [
+        $validator = Validator::make($dto->toArray(), [
             "id" => "required|integer",
             "title" => "required",
             "price" => "required|decimal:0,2",
@@ -139,4 +104,45 @@ class ProductAction extends Command
         }
 
     }
+
+    private function getApiData (int $prod_id) {
+        $response = Http::get("https://fakestoreapi.com/products/$prod_id");
+        if ($response->clientError()) {
+            $this->error("Erro de requisição! status: 400!");
+        } else if ($response->serverError()) {
+            $this->error("Erro do servidor! status: 500!");
+        }
+        return [
+            "id" => $response->object()->id,
+            "title" => $response->object()->title,
+            "price" => $response->object()->price,
+            "description" => $response->object()->description,
+            "category" => $response->object()->category,
+            "image" => $response->object()->image,
+            "rate" => $response->object()->rating->rate,
+            "count" => $response->object()->rating->count
+        ];
+    }
+    private function getDiskData (int $prod_id) {
+        $path = Storage::disk('products')->path('all_products.json');
+        $json = file_get_contents($path);
+        $response = json_decode(str_replace(["\r", "\n"], '', $json), true);
+
+        if (!isset($response[$prod_id])) {
+            $this->error("Produto com id $prod_id não econtrado!");
+        }
+        $response = (object)$response[$prod_id];
+        return [
+            "id" => $response->id,
+            "title" => $response->title,
+            "price" => $response->price,
+            "description" => $response->description,
+            "category" => $response->category,
+            "image" => $response->image,
+            "rate" => $response->rating['rate'],
+            "count" => $response->rating['count']
+        ];
+    }
+
+
 }

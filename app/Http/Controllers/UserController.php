@@ -2,76 +2,43 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\MailTest;
-use App\Models\User;
-use Illuminate\Auth\Events\PasswordReset;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
-use function Symfony\Component\String\s;
+use App\Http\Requests\StoreUserRequest;
+use App\Http\Requests\UpdateUserRequest;
+use App\Services\UserService;
+use Illuminate\Http\JsonResponse;
 
 
 class UserController extends Controller
 {
-    public function Login(Request $request)
-    {
-        try {
-            $user = User::where('email', 'vitorvaz001@gmail.com')->first();
-            $user_validatidion = Auth::attempt(['email' => 'vitorvaz001@gmail.com', 'password' => '123456']);
-            if ($user_validatidion) {
-                $token = $user->createToken('token_random_name');
-                $test = bcrypt('123456');
-                return response()->json(
-                    ['report_type' => 'success', 'success' => true, 'message' => "Login concluído! $test"], 200)
-                    ->header('Authorization', "Bearer $token->plainTextToken");
-            }
-        }catch (\Exception $e){
-            return response()->json(['report_type' => 'failure', 'success' => false, 'message' => $e->getMessage()], 500);
-        }
-    }
 
-    public function Logout(Request $request)
+    public function __construct(protected UserService $service)
     {
-        $request->user()->currentAccessToken()->delete();
-        return response()->json(['report_type' => 'success', 'success' => true, 'message' => "Logout realizado com sucesso!"]);
     }
 
 
-    public function CheckUser(Request $request)
+    public function show(int $id): JsonResponse
     {
-        return response()->json(['report_type' => 'success', 'success' => true, 'message' => $request->all()], 200);
-    }
-
-    public function SendEmailResetPassword()
-    {
-        $status = Password::sendResetLink(['email' => 'vitorvaz001@gmail.com']);
-        $user = User::where('email', 'vitorvaz001@gmail.com')->first();
-        dd(phpinfo());
+        $obj = $this->service->show($id);
+        return response()->json(['data' => $obj, 'message' => $obj['message']], $obj['status']);
     }
 
 
-    public function ResetPassword($token, Request $request)
+    public function store(StoreUserRequest $request): JsonResponse
     {
-        $status = Password::reset(
-            ['email' => 'vitorvaz001@gmail.com',
-                'password' => '12345678', 'password_confirmation' => '12345678',
-                'token'=> $token],
+        $store = $this->service->store($request->all());
+        return response()->json(['message' => $store['message']], $store['status']);
+    }
 
-            function (User $user, string $password) {
-                $user->forceFill([
-                    'password' => Hash::make($password)
-                ])->setRememberToken(Str::random(60));
+    public function update(UpdateUserRequest $request, string $id): JsonResponse
+    {
+        $update = $this->service->update($id, $request->all());
+        return response()->json(['message' => $update['message']], $update['status']);
+    }
 
-                $user->save();
 
-                event(new PasswordReset($user));
-            }
-        );
-        dd($status,  Password::PasswordReset, $status === Password::PasswordReset);
-
-        return response()->json(['report_type' => 'success', 'success' => true, 'message' => $status], 200);
+    public function destroy(string $id): JsonResponse
+    {
+        $destroy = $this->service->destroy($id);
+        return response()->json(['message' => $destroy['message']], $destroy['status']);
     }
 }

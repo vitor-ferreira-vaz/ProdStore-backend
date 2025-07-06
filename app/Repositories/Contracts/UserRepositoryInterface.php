@@ -6,7 +6,7 @@ namespace App\Repositories\Contracts;
 use App\DTO\StoreUserDTO;
 use App\DTO\UpdateUserDTO;
 
-interface ProductRepositoryInterface
+interface UserRepositoryInterface
 {
     public function show(int $id): ?object;
 

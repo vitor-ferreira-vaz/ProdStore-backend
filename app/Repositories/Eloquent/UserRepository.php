@@ -8,7 +8,7 @@ use App\Models\User;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use Illuminate\Support\Facades\DB;
 
-class ProductRepository implements UserRepositoryInterface
+class UserRepository implements UserRepositoryInterface
 {
     public function show(int $id): object
     {

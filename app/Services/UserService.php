@@ -7,7 +7,7 @@ use App\DTO\StoreUserDTO;
 use App\DTO\UpdateUserDTO;
 use App\Repositories\Contracts\UserRepositoryInterface;
 
-class ProductService
+class UserService
 {
     public function __construct(protected UserRepositoryInterface $repository) {}
 
