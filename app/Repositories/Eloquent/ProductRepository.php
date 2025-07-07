@@ -18,22 +18,19 @@ class ProductRepository implements ProductRepositoryInterface
 
         $query = Product::query();
 
+        if(!empty($request->id)) {
+            $query->whereRaw("id", [$request->id]);
+        }
+
         if(!empty($request->title)) {
             $query->whereRaw("title", [$request->title]);
         }
-        if(!empty($request->price)) {
-            $query->whereRaw("price", [$request->price]);
-        }
-        if(!empty($request->description)) {
-            $query->whereRaw("description", [$request->description]);
-        }
+
         if(!empty($request->category)) {
             $query->whereRaw("category", [$request->category]);
         }
-        if(!empty($request->image)) {
-            $query->whereRaw("image", [$request->image]);
-        }
-        if(!empty($request->rate)) {
+
+        if(!empty($request->with_image)) {
             $query->whereRaw("rate", [$request->rate]);
         }
         return Product::paginate($request->perPage)->through(fn(Product $u) => ProductDTO::InstancefromArray($u->toArray()));
